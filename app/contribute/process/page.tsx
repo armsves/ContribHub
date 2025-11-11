@@ -10,7 +10,7 @@ import { CheckCircle, XCircle, Loader2, AlertCircle, ExternalLink } from "lucide
 import Confetti from "@/components/ui/Confetti";
 import { useConfetti } from "@/hooks/useConfetti";
 
-type ProcessStep = "receiving" | "analyzing" | "approving" | "swapping" | "completing" | "completed" | "rejected";
+type ProcessStep = "receiving" | "analyzing" | "approving" | "swapping" | "completed" | "rejected";
 
 export default function ProcessContributionPage() {
   const { address } = useAccount();
@@ -90,13 +90,6 @@ export default function ProcessContributionPage() {
 
       const swapResult = await swapResponse.json();
       setSwapHash(swapResult.hash);
-      await updateContribution(contribution.id, {
-        swapTxHash: swapResult.hash,
-      });
-
-      // Step 4: "Merge PR" (mock)
-      setStep("completing");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
       
       // Store to IPFS - now using real IPFS upload
       const ipfsResponse = await fetch("/api/ipfs/upload", {
@@ -125,6 +118,7 @@ export default function ProcessContributionPage() {
 
       await updateContribution(contribution.id, {
         status: "completed",
+        swapTxHash: swapResult.hash,
         ipfsCid,
         prMerged: true,
       });
@@ -215,15 +209,6 @@ export default function ProcessContributionPage() {
                 <p className="text-xs text-secondary mt-2">TX: {swapHash}</p>
               </div>
             )}
-          </div>
-        );
-
-      case "completing":
-        return (
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-green-500" />
-            <h3 className="text-xl font-bold mb-2">Merging Contribution</h3>
-            <p className="text-secondary">Storing to IPFS and merging PR...</p>
           </div>
         );
 
@@ -372,10 +357,9 @@ export default function ProcessContributionPage() {
               { key: "receiving", label: "Receive" },
               { key: "analyzing", label: "Analyze" },
               { key: "swapping", label: "Pay" },
-              { key: "completing", label: "Merge" },
             ].map((s, idx) => {
-              const stepIndex = ["receiving", "analyzing", "swapping", "completing"].indexOf(step);
-              const isActive = idx <= stepIndex;
+              const stepIndex = ["receiving", "analyzing", "swapping", "completed"].indexOf(step);
+              const isActive = idx <= stepIndex || step === "completed";
               const isCurrent = idx === stepIndex;
 
               return (
@@ -396,7 +380,7 @@ export default function ProcessContributionPage() {
                     </div>
                     <span className="text-xs mt-1 text-secondary">{s.label}</span>
                   </div>
-                  {idx < 3 && (
+                  {idx < 2 && (
                     <div
                       className={`h-1 flex-1 mx-2 ${
                         isActive ? "bg-orange-500" : "bg-gray-700"

@@ -40,12 +40,14 @@ interface FormData {
   title: string;
   websiteUrl: string;
   category: string;
+  paymentNetwork: string;
 }
 
 interface FormErrors {
   title?: string;
   websiteUrl?: string;
   category?: string;
+  paymentNetwork?: string;
 }
 
 export default function ContributePage() {
@@ -62,6 +64,7 @@ export default function ContributePage() {
     title: "",
     websiteUrl: "",
     category: "",
+    paymentNetwork: "base",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +81,12 @@ export default function ContributePage() {
     "Analytics Tool",
     "Development Tool",
     "Other"
+  ];
+
+  const paymentNetworks = [
+    { value: "base", label: "Base" },
+    { value: "avalanche", label: "Avalanche" },
+    { value: "arbitrum", label: "Arbitrum" },
   ];
 
   const validateForm = (): boolean => {
@@ -107,6 +116,11 @@ export default function ContributePage() {
     // Validate category
     if (!formData.category) {
       newErrors.category = "Please select a category";
+    }
+
+    // Validate payment network
+    if (!formData.paymentNetwork) {
+      newErrors.paymentNetwork = "Please select a payment network";
     }
 
     setErrors(newErrors);
@@ -158,6 +172,7 @@ export default function ContributePage() {
           title: formData.title,
           websiteUrl: formData.websiteUrl,
           category: formData.category,
+          paymentNetwork: formData.paymentNetwork,
           contributor: address,
           timestamp: new Date().toISOString(),
         },
@@ -192,7 +207,7 @@ export default function ContributePage() {
 
       // Reset form after success
       setTimeout(() => {
-        setFormData({ title: "", websiteUrl: "", category: "" });
+        setFormData({ title: "", websiteUrl: "", category: "", paymentNetwork: "base" });
         setSelectedDatasetId("");
         setIsSuccess(false);
         handleReset();
@@ -395,6 +410,36 @@ export default function ContributePage() {
                     >
                       <AlertCircle className="w-3 h-3" />
                       {errors.category}
+                    </motion.p>
+                  )}
+                </div>
+
+                {/* Payment Network Select */}
+                <div>
+                  <label htmlFor="paymentNetwork" className="block text-sm font-semibold mb-2">
+                    Preferred Receiving Payment Network *
+                  </label>
+                  <select
+                    id="paymentNetwork"
+                    value={formData.paymentNetwork}
+                    onChange={(e) => handleChange("paymentNetwork", e.target.value)}
+                    className={`input-dark w-full ${errors.paymentNetwork ? "border-red-500" : ""}`}
+                    disabled={isSubmitting}
+                  >
+                    {paymentNetworks.map((network) => (
+                      <option key={network.value} value={network.value}>
+                        {network.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.paymentNetwork && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-500 text-xs mt-1 flex items-center gap-1"
+                    >
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.paymentNetwork}
                     </motion.p>
                   )}
                 </div>

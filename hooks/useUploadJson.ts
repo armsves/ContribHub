@@ -114,16 +114,24 @@ export const useUploadJson = () => {
         dataSetId: BigInt(datasetId),
       });
 
+      // Wait a bit for the transaction to be confirmed
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       setProgress(95);
       setUploadedInfo({
         fileName: jsonFile.name,
         fileSize: jsonFile.size,
         pieceCid: pieceCid.toV1().toString(),
       });
-    },
-    onSuccess: () => {
+      
+      // Complete the upload
       setStatus("🎉 Data successfully stored on Filecoin!");
       setProgress(100);
+    },
+    onSuccess: () => {
+      // Ensure progress is 100% on success
+      setProgress(100);
+      setStatus("🎉 Data successfully stored on Filecoin!");
       triggerConfetti();
     },
     onError: (error) => {

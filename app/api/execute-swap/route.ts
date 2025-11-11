@@ -74,13 +74,24 @@ export async function POST(request: NextRequest) {
             }),
         });
 
+        console.log('⏳ Getting current nonce...');
+        
+        // Get current nonce to avoid "nonce too low" errors
+        const nonce = await publicClient.getTransactionCount({
+            address: account.address,
+            blockTag: 'pending',
+        });
+        
+        console.log('📊 Current nonce:', nonce);
+
         console.log('⏳ Executing swap transaction...');
 
-        // Execute swap
+        // Execute swap with explicit nonce
         const hash = await walletClient.writeContract({
             address: contractAddress as `0x${string}`,
             abi: MY_CONTRACT_ABI,
             functionName: 'executeSwap',
+            nonce: nonce,
         });
 
         console.log('⏳ Transaction hash:', hash);
