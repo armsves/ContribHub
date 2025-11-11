@@ -118,17 +118,32 @@ Get Fuji testnet tokens from:
 
 ## Network Configuration
 
-The integration automatically configures the following networks:
+The dApp now supports multiple networks and automatic chain switching:
 
-### Base Sepolia
+### Filecoin Calibration (Storage)
+- **Chain ID**: 314159
+- **Purpose**: File storage using Synapse SDK
+- **Used For**: Main storage page (/)
+- **Block Explorer**: https://calibration.filfox.info
+
+### Base Sepolia (OnlySwap)
 - **Chain ID**: 84532
+- **Purpose**: Cross-chain swap source chain
+- **Used For**: OnlySwap page (/swap)
 - **RPC URL**: https://sepolia.base.org
 - **Block Explorer**: https://sepolia.basescan.org
 
-### Avalanche Fuji
+### Avalanche Fuji (OnlySwap Destination)
 - **Chain ID**: 43113
+- **Purpose**: Cross-chain swap destination chain
 - **RPC URL**: https://api.avax-test.network/ext/bc/C/rpc
 - **Block Explorer**: https://testnet.snowtrace.io
+
+### Chain Switching
+- The wallet will start on **Filecoin Calibration** by default
+- When you navigate to the OnlySwap page, you'll be prompted to switch to **Base Sepolia**
+- Chain switching is automatic via the wallet - just approve the switch request
+- The ConnectButton in the navbar shows which chain you're currently on
 
 ## Running the Application
 

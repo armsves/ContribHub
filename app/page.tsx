@@ -12,7 +12,8 @@ import { useBalances } from "@/hooks/useBalances";
 import Github from "@/components/ui/icons/Github";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDataSets } from "@filoz/synapse-react";
+import { calibration } from '@filoz/synapse-core/chains';
+import { StorageContent } from "@/components/StorageContent";
 /** Valid tab identifiers for application navigation */
 type Tab = "manage-storage" | "upload" | "datasets";
 
@@ -51,22 +52,17 @@ const itemVariants = {
  * - /?tab=datasets - Dataset viewer
  */
 export default function Home() {
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, chainId } = useAccount();
   const [activeTab, setActiveTab] = useState<Tab>("manage-storage");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showConfetti } = useConfetti();
+
+  // Check if we're on the correct chain for synapse operations
+  const isOnCalibration = chainId === calibration.id;
+
   // Fetch data at top level and distribute via props for centralized loading state
   const { data: balances, isLoading: isLoadingBalances } = useBalances();
-  const {
-    data: datasetsData,
-    isLoading,
-    isFetchedAfterMount,
-  } = useDataSets({
-    address,
-  });
-
-  const isLoadingDatasets = isLoading || !isFetchedAfterMount;
 
   /** Type guard to validate tab parameter from URL */
   const isTab = (value: string | null): value is Tab =>
@@ -96,6 +92,18 @@ export default function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Listen for tab change events from StorageContent
+  useEffect(() => {
+    const onTabChange = (e: any) => {
+      if (isTab(e.detail)) {
+        setActiveTab(e.detail);
+        updateUrl(e.detail);
+      }
+    };
+    window.addEventListener('changeTab', onTabChange);
+    return () => window.removeEventListener('changeTab', onTabChange);
+  }, []);
 
   return (
     <div className="w-full flex flex-col justify-center min-h-fit">
@@ -131,7 +139,7 @@ export default function Home() {
           </div>
           <motion.p
             variants={itemVariants}
-            className="text-xl font-semibold lowercase transition-colors duration-50 hover:text-foreground flex flex-row items-center gap-2"
+            className="text-lg font-medium lowercase transition-colors duration-50 hover:text-foreground flex flex-row items-center gap-2 text-secondary"
           >
             <motion.a
               whileHover={{ scale: 1.3 }}
@@ -154,7 +162,7 @@ export default function Home() {
 
         <motion.p
           variants={itemVariants}
-          className="text-lg font-semibold capitalize-none transition-colors duration-50 mb-2 mt-1 hover:text-foreground flex flex-col sm:flex-row items-center gap-2 text-center"
+          className="text-base font-medium capitalize-none transition-colors duration-50 mb-2 mt-1 hover:text-foreground flex flex-col sm:flex-row items-center gap-2 text-center text-secondary"
         >
           <span>
             upload files to filecoin with{" "}
@@ -202,112 +210,33 @@ export default function Home() {
                 <span className="sm:hidden">Connect wallet to continue</span>
               </motion.p>
             </motion.div>
-          ) : (
+          ) : !isOnCalibration ? (
             <motion.div
-              key="content"
+              key="wrong-network"
               variants={itemVariants}
-              className="mt-3 max-w-5xl w-full border rounded-lg p-8"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex flex-col items-center max-w-2xl"
             >
-              <motion.div variants={itemVariants} className="flex mb-6">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleTabChange("manage-storage")}
-                  className={`flex-1 py-2 px-4 text-center border-b-2 sm:text-lg text-xs transition-colors ${
-                    activeTab === "manage-storage"
-                      ? "border-primary text-primary-foreground bg-primary"
-                      : "border-transparent text-secondary hover:text-primary hover:bg-secondary/10"
-                  }`}
-                >
-                  Manage Storage
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleTabChange("upload")}
-                  className={`flex-1 py-2 px-4 text-center border-b-2 sm:text-lg text-xs transition-colors ${
-                    activeTab === "upload"
-                      ? "border-primary text-primary-foreground bg-primary"
-                      : "border-transparent text-secondary hover:text-primary hover:bg-secondary/10"
-                  }`}
-                >
-                  Upload File
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleTabChange("datasets")}
-                  className={`flex-1 py-2 px-4 text-center border-b-2 sm:text-lg text-xs transition-colors ${
-                    activeTab === "datasets"
-                      ? "border-primary text-primary-foreground bg-primary"
-                      : "border-transparent text-secondary hover:text-primary hover:bg-secondary/10"
-                  }`}
-                >
-                  View Datasets
-                </motion.button>
-              </motion.div>
-
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key="deposit"
-                  className={`${
-                    activeTab === "manage-storage" ? "opacity-100" : "hidden"
-                  }`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 20,
-                  }}
-                >
-                  <StorageManager
-                    balances={balances}
-                    datasetsData={datasetsData ?? []}
-                    isBalanceLoading={isLoadingBalances}
-                  />
-                </motion.div>
-                <motion.div
-                  key="upload"
-                  className={`${
-                    activeTab === "upload" ? "opacity-100" : "hidden"
-                  }`}
-                  // top to bottom
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: +20 }}
-                  transition={{
-                    type: "smooth",
-                  }}
-                >
-                  <FileUploader
-                    datasetsData={datasetsData ?? []}
-                    isLoadingDatasets={isLoadingDatasets}
-                  />
-                </motion.div>
-
-                <motion.div
-                  key="datasets"
-                  className={`${
-                    activeTab === "datasets" ? "opacity-100" : "hidden"
-                  }`}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 20,
-                  }}
-                >
-                  <DatasetsViewer
-                    datasetsData={datasetsData ?? []}
-                    isLoadingDatasets={isLoadingDatasets}
-                  />
-                </motion.div>
-              </AnimatePresence>
+              <div className="p-6 bg-yellow-500/10 border border-yellow-500 rounded-lg text-center">
+                <h3 className="text-xl font-bold text-yellow-500 mb-2">
+                  Wrong Network
+                </h3>
+                <p className="text-yellow-500 mb-4">
+                  Storage features require Filecoin Calibration network. Please switch your network using the wallet button above.
+                </p>
+                <p className="text-sm text-secondary">
+                  For cross-chain swaps, visit the <a href="/swap" className="text-primary hover:underline">OnlySwap page</a>.
+                </p>
+              </div>
             </motion.div>
+          ) : (
+            <StorageContent
+              activeTab={activeTab}
+              balances={balances}
+              isBalanceLoading={isLoadingBalances}
+            />
           )}
         </AnimatePresence>
       </motion.main>

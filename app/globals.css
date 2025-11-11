@@ -5,29 +5,31 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #007bff;
+  --primary: #FF6A00;
   --primary-foreground: #ffffff;
   --secondary: #6c757d;
   --secondary-foreground: #ffffff;
   --border: #e5e7eb;
   --muted: #f8f9fa;
   --muted-foreground: #6c757d;
-  --accent: #007bff;
+  --accent: #FF6A00;
+  --card: #f5f5f5;
   --success: #000000;
   --warning: #000000;
 }
 
 .dark {
-  --background: #0a0a0a;
+  --background: #16151A;
   --foreground: #ededed;
-  --primary: #007bff;
+  --primary: #FF6A00;
   --primary-foreground: #ffffff;
-  --secondary: #6c757d;
+  --secondary: #a3a3a3;
   --secondary-foreground: #ffffff;
-  --border: #2a2a2a;
-  --muted: #1a1a1a;
+  --border: #35343A;
+  --muted: #232127;
   --muted-foreground: #a3a3a3;
-  --accent: #007bff;
+  --accent: #FF6A00;
+  --card: #232127;
   --success: #ffffff;
   --warning: #ffffff;
 }
@@ -35,7 +37,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
 @layer base {
@@ -71,4 +73,59 @@ body {
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Brand-specific utilities */
+.btn-orange {
+  background-color: #FF6A00;
+  color: white;
+  font-weight: 700;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-orange:hover {
+  background-color: #FF7A10;
+  box-shadow: 0 4px 12px rgba(255, 106, 0, 0.3);
+}
+
+.card-dark {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.24);
+}
+
+.chip-orange {
+  background-color: #282730;
+  color: #FF6A00;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.input-dark {
+  background-color: #232127;
+  border: 1px solid #35343A;
+  color: white;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: #FF6A00;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.1);
+}
+
+.input-dark option {
+  background-color: #232127;
+  color: white;
+  padding: 0.5rem;
+}
+
+.input-dark::placeholder {
+  color: #6c757d;
 }

@@ -1,6 +1,5 @@
-import { ethers } from 'ethers';
 import * as dotenv from 'dotenv';
-import WebSocket from 'ws';
+import { ethers } from 'ethers';
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +17,7 @@ const ROUTER_ABI = [
 function createProvider(rpcUrl: string): ethers.Provider {
   if (rpcUrl.startsWith('wss://') || rpcUrl.startsWith('ws://')) {
     // Use WebSocketProvider for WebSocket URLs
-    return new ethers.WebSocketProvider(rpcUrl, undefined, { WebSocket: WebSocket as any });
+    return new ethers.WebSocketProvider(rpcUrl, undefined);
   } else {
     // Use JsonRpcProvider for HTTP(S) URLs
     return new ethers.JsonRpcProvider(rpcUrl);

@@ -6,13 +6,15 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SettingsModal } from "./SettingsModal";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { SettingsIcon, ArrowLeftRight } from "lucide-react";
+import { SettingsIcon, ArrowLeftRight, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAccount } from "wagmi";
 
 export function Navbar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const pathname = usePathname();
+  const { chain } = useAccount();
 
   return (
     <motion.nav
@@ -20,7 +22,10 @@ export function Navbar() {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
       className="flex items-center justify-between px-3 py-3 border-b relative"
-      style={{ borderColor: "var(--border)" }}
+      style={{
+        borderColor: "var(--border)",
+        backgroundColor: "var(--background)"
+      }}
     >
       <motion.div
         initial={{ opacity: 0, x: -20 }}
@@ -52,10 +57,10 @@ export function Navbar() {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`px-3 py-1.5 rounded-lg transition-colors text-sm cursor-pointer inline-block ${
+              className={`px-4 py-2 rounded-lg transition-all text-sm cursor-pointer inline-block font-semibold ${
                 pathname === "/"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-secondary/20"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted text-foreground"
               }`}
             >
               Storage
@@ -65,14 +70,28 @@ export function Navbar() {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`px-3 py-1.5 rounded-lg transition-colors text-sm flex items-center gap-1 cursor-pointer ${
+              className={`px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-1 cursor-pointer font-semibold ${
                 pathname === "/swap"
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-secondary/20"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted text-foreground"
               }`}
             >
               <ArrowLeftRight className="w-4 h-4" />
               OnlySwap
+            </motion.div>
+          </Link>
+          <Link href="/contribute">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-4 py-2 rounded-lg transition-all text-sm flex items-center gap-1 cursor-pointer font-semibold ${
+                pathname === "/contribute"
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : "hover:bg-muted text-foreground"
+              }`}
+            >
+              <PlusCircle className="w-4 h-4" />
+              Contribute
             </motion.div>
           </Link>
         </div>
@@ -105,8 +124,12 @@ export function Navbar() {
         <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
           <ThemeToggle />
         </motion.div>
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <ConnectButton />
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center"
+        >
+          <ConnectButton showBalance={false} chainStatus="icon" />
         </motion.div>
       </motion.div>
       <SettingsModal

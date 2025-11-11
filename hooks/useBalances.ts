@@ -60,16 +60,24 @@ import { usePublicClient } from "wagmi";
  */
 
 export const useBalances = () => {
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
   // const connectorClient = useConnectorClient({ connector });
   const client = usePublicClient();
   const { config } = useConfig();
+
+  // Only enable query on Filecoin chains (calibration: 314159, mainnet: 314)
+  const isFilecoinChain = chainId === 314159 || chainId === 314;
+
   const query = useQuery({
-    enabled: !!address,
-    queryKey: ["balances", address, config],
+    enabled: !!address && isFilecoinChain,
+    queryKey: ["balances", address, config, chainId],
     queryFn: async (): Promise<UseBalancesResponse> => {
       if (!address) throw new Error("Address not found");
       if (!client) throw new Error("Public client not found");
+      if (!isFilecoinChain) {
+        // Return default balances when on wrong chain
+        return defaultBalances;
+      }
 
       const [filRaw, { value: usdfcRaw, decimals: usdfcDecimals }, { availableFunds: paymentsRaw }, prices, operatorApprovals] = await Promise.all([
         getBalance(client, {

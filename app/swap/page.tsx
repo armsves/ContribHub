@@ -42,12 +42,21 @@ export default function SwapPage() {
   const { showConfetti } = useConfetti();
 
   const handleExecuteSwap = async () => {
-    // Switch to Base Sepolia if not already on it
-    if (chainId !== baseSepolia.id && switchChain) {
-      await switchChain({ chainId: baseSepolia.id });
-    }
+    try {
+      // Switch to Base Sepolia if not already on it
+      if (chainId !== baseSepolia.id) {
+        if (!switchChain) {
+          throw new Error("Chain switching not available. Please switch network manually in your wallet.");
+        }
+        await switchChain({ chainId: baseSepolia.id });
+        // Wait a bit for the chain to switch
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
-    await swapMutation.mutateAsync();
+      await swapMutation.mutateAsync();
+    } catch (error: any) {
+      console.error("Error executing swap:", error);
+    }
   };
 
   const isCorrectChain = chainId === baseSepolia.id;
@@ -121,7 +130,7 @@ export default function SwapPage() {
                   </div>
                   <button
                     onClick={() => switchChain?.({ chainId: baseSepolia.id })}
-                    className="mt-2 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition-colors"
+                    className="mt-2 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition-colors font-semibold"
                   >
                     Switch to Base Sepolia
                   </button>
@@ -131,7 +140,7 @@ export default function SwapPage() {
               {/* Swap Execution Card */}
               <motion.div
                 variants={itemVariants}
-                className="border rounded-lg p-6 mb-6"
+                className="card-dark p-6 mb-6"
               >
                 <h2 className="text-xl font-bold mb-4">Execute Swap</h2>
 
@@ -154,7 +163,7 @@ export default function SwapPage() {
                 <button
                   onClick={handleExecuteSwap}
                   disabled={swapMutation.isPending || !isCorrectChain}
-                  className="w-full py-3 px-6 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 px-6 btn-orange disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {swapMutation.isPending ? (
                     <>
@@ -176,7 +185,7 @@ export default function SwapPage() {
               {/* Swap Status Card */}
               <motion.div
                 variants={itemVariants}
-                className="border rounded-lg p-6 mb-6"
+                className="card-dark p-6 mb-6"
               >
                 <h2 className="text-xl font-bold mb-4">Swap Status</h2>
 
@@ -238,7 +247,7 @@ export default function SwapPage() {
               {/* Balances Card */}
               <motion.div
                 variants={itemVariants}
-                className="border rounded-lg p-6"
+                className="card-dark p-6"
               >
                 <h2 className="text-xl font-bold mb-4">RUSD Token Balances</h2>
 

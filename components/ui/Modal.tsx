@@ -71,11 +71,9 @@ export const Modal = ({
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] sm:w-full sm:max-w-md max-h-[90vh] z-50 flex flex-col"
           >
             <div
-              className="rounded-lg p-6 w-full overflow-y-scroll"
+              className="rounded-lg p-6 w-full overflow-y-scroll card-dark"
               style={{
-                backgroundColor: "var(--background)",
-                border: "1px solid var(--border)",
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
               }}
             >
               {/* Header */}

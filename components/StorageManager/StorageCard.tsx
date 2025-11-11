@@ -73,11 +73,7 @@ export const StorageCard = ({
 
   return (
     <div
-      className="p-4 rounded-lg border"
-      style={{
-        backgroundColor: "var(--background)",
-        borderColor: "var(--border)",
-      }}
+      className="p-4 card-dark"
     >
       <div className="flex items-center justify-center gap-2 mb-3">
         <h4 className="text-sm font-semibold">

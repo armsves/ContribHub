@@ -1,6 +1,5 @@
-import { ethers } from 'ethers';
 import * as dotenv from 'dotenv';
-import WebSocket from 'ws';
+import { ethers } from 'ethers';
 
 // Load environment variables
 dotenv.config();
@@ -15,7 +14,7 @@ const MY_CONTRACT_ABI = [
 
 function createProvider(rpcUrl: string): ethers.Provider {
   if (rpcUrl.startsWith('wss://') || rpcUrl.startsWith('ws://')) {
-    return new ethers.WebSocketProvider(rpcUrl, undefined, { WebSocket: WebSocket as any });
+    return new ethers.WebSocketProvider(rpcUrl, undefined);
   } else {
     return new ethers.JsonRpcProvider(rpcUrl);
   }

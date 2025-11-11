@@ -6,7 +6,7 @@ import { WagmiProvider, serialize, deserialize } from "wagmi";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 
 import "@rainbow-me/rainbowkit/styles.css";
 import * as React from "react";
@@ -17,6 +17,7 @@ import { ConfigProvider } from "@/providers/ConfigProvider";
 import Footer from "@/components/ui/Footer";
 import { GeolocationProvider } from "@/providers/GeolocationProvider";
 import { config } from "@/services/wagmi";
+import { calibration } from '@filoz/synapse-core/chains';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,7 +72,16 @@ export default function RootLayout({
               <ConfettiProvider>
                 <QueryClientProvider client={queryClient}>
                   <WagmiProvider config={config}>
-                    <RainbowKitProvider modalSize="compact">
+                    <RainbowKitProvider
+                      modalSize="compact"
+                      initialChain={calibration}
+                      theme={darkTheme({
+                        accentColor: '#FF6A00',
+                        accentColorForeground: 'white',
+                        borderRadius: 'medium',
+                        fontStack: 'system',
+                      })}
+                    >
                       <main className="flex flex-col min-h-screen">
                         <Navbar />
                         {children}

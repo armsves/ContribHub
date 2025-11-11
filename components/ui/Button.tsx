@@ -16,13 +16,13 @@ export const Button = ({
   className = "",
   ...props
 }: ButtonProps) => {
-  const baseStyles = "px-6 py-2 rounded-[20px] text-center border-2 transition-all";
+  const baseStyles = "px-6 py-2 rounded-lg text-center transition-all font-semibold";
 
   const variantStyles = disabled
-    ? "border-gray-200 text-gray-400 cursor-not-allowed"
+    ? "bg-gray-500 text-gray-300 cursor-not-allowed opacity-50"
     : variant === "primary"
-    ? "border-primary text-primary hover:bg-primary/70 hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 hover:border-primary/70 hover:cursor-pointer"
-    : "border-secondary text-secondary hover:bg-secondary/70 hover:text-secondary-foreground focus:outline-none focus:ring-2 focus:ring-secondary/50 hover:border-secondary/70 hover:cursor-pointer";
+    ? "bg-primary text-primary-foreground hover:bg-[#FF7A10] focus:outline-none focus:ring-2 focus:ring-primary/50 shadow-md hover:shadow-lg hover:cursor-pointer"
+    : "bg-muted text-foreground border border-border hover:bg-secondary/30 focus:outline-none focus:ring-2 focus:ring-secondary/50 hover:cursor-pointer";
 
   return (
     <button
