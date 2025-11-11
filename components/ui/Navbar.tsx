@@ -51,7 +51,7 @@ export function Navbar() {
           className="flex items-center gap-4 flex-shrink-0 z-10"
         >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link href="/">
+            <Link href="/contribute">
               <button
                 className="px-4 py-2 rounded-lg text-sm font-medium text-white transition-all"
                 style={{
@@ -100,8 +100,8 @@ export function Navbar() {
         />
       </motion.nav>
       
-      {/* Bottom Navigation Links */}
-      <motion.div
+      {/* Bottom Navigation Links - Hidden */}
+      {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
@@ -152,7 +152,7 @@ export function Navbar() {
             Contribute
           </motion.div>
         </Link>
-      </motion.div>
+      </motion.div> */}
     </>
   );
 }

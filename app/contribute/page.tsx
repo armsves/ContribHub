@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, Send, AlertCircle, Plus } from "lucide-react";
 import Confetti from "@/components/ui/Confetti";
 import { useConfetti } from "@/hooks/useConfetti";
+import { useAccount } from "wagmi";
+import { useContributions } from "@/hooks/useContributions";
+import { useDataSetsWrapped } from "@/hooks/useDataSetsWrapped";
+import { Select } from "@/components/ui/Select";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 // Animation variants
 const containerVariants = {
@@ -42,6 +49,13 @@ interface FormErrors {
 }
 
 export default function ContributePage() {
+  const { address, isConnected } = useAccount();
+  const router = useRouter();
+  const { addContribution } = useContributions();
+  const { data: datasetsData, isLoading: isLoadingDatasets } = useDataSetsWrapped();
+  const { uploadFileMutation, uploadedInfo, handleReset, status, progress } = useFileUpload();
+  const { mutateAsync: uploadFile } = uploadFileMutation;
+
   const [formData, setFormData] = useState<FormData>({
     title: "",
     websiteUrl: "",
@@ -50,6 +64,9 @@ export default function ContributePage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
   const { triggerConfetti, showConfetti } = useConfetti();
 
   const categories = [
@@ -96,6 +113,33 @@ export default function ContributePage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragIn = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragOut = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      setFile(files[0]);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -103,23 +147,63 @@ export default function ContributePage() {
       return;
     }
 
+    if (!isConnected || !address) {
+      alert("Please connect your wallet");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      let fileCid: string | undefined;
+      let fileTxHash: string | undefined;
 
-    // Log the submission (in real app, this would be an API call)
-    console.log("Tool submitted:", formData);
+      // Upload file if provided (must happen before creating contribution)
+      if (file && selectedDatasetId) {
+        try {
+          await uploadFile({
+            file,
+            datasetId: selectedDatasetId,
+          });
+          // Get uploaded info after upload completes
+          fileCid = uploadedInfo?.pieceCid;
+          fileTxHash = uploadedInfo?.txHash;
+        } catch (uploadError) {
+          console.error("File upload failed:", uploadError);
+          // Continue with contribution creation even if file upload fails
+        }
+      }
 
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    triggerConfetti();
+      // Create contribution (PR entry) - represents a GitHub PR waiting for AI processing
+      const contribution = addContribution({
+        contributor: address,
+        data: {
+          ...formData,
+          fileCid,
+          fileTxHash,
+          fileName: file?.name,
+          fileSize: file?.size,
+          datasetId: selectedDatasetId,
+        },
+        status: "pending", // Waiting for AI processing (like a PR waiting for review)
+      });
 
-    // Reset form after success
-    setTimeout(() => {
-      setFormData({ title: "", websiteUrl: "", category: "" });
-      setIsSuccess(false);
-    }, 3000);
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      triggerConfetti();
+
+      // Reset form after success
+      setTimeout(() => {
+        setFormData({ title: "", websiteUrl: "", category: "" });
+        setFile(null);
+        setSelectedDatasetId("");
+        setIsSuccess(false);
+        handleReset();
+      }, 3000);
+    } catch (error) {
+      console.error("Error submitting contribution:", error);
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: keyof FormData, value: string) => {
@@ -170,6 +254,34 @@ export default function ContributePage() {
 
         <motion.div
           variants={itemVariants}
+          className="mb-6 flex gap-4 justify-center"
+        >
+          <motion.a
+            href="/contribute/table"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <button
+              className="px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 border-2"
+              style={{
+                borderColor: "#FF6A00",
+                color: "#FF6A00",
+                backgroundColor: "transparent",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#FF6A0010";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              View Contributions Table
+            </button>
+          </motion.a>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
           className="mt-3 max-w-2xl w-full card-dark p-8"
         >
           <AnimatePresence mode="wait">
@@ -182,10 +294,21 @@ export default function ContributePage() {
                 className="flex flex-col items-center justify-center py-12"
               >
                 <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                <h3 className="text-2xl font-bold mb-2">Submission Successful!</h3>
-                <p className="text-secondary text-center">
-                  Thank you for your contribution. We'll review your submission and add it to our toolbox soon.
+                <h3 className="text-2xl font-bold mb-2">Contribution Created!</h3>
+                <p className="text-secondary text-center mb-4">
+                  Your contribution has been created and is waiting for AI processing.
                 </p>
+                <motion.button
+                  onClick={() => router.push("/contribute/table")}
+                  className="px-6 py-2 rounded-lg font-medium text-white transition-all"
+                  style={{
+                    backgroundColor: "#FF6A00",
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  View Contributions Table
+                </motion.button>
               </motion.div>
             ) : (
               <motion.form
@@ -279,13 +402,122 @@ export default function ContributePage() {
                   )}
                 </div>
 
+                {/* File Upload Section - Only show if connected */}
+                {isConnected && (
+                  <>
+                    <div className="border-t pt-6 mt-6" style={{ borderColor: "var(--border)" }}>
+                      <h3 className="text-lg font-semibold mb-4">Upload Supporting File (Optional)</h3>
+                      
+                      {/* Dataset Selection */}
+                      {isLoadingDatasets ? (
+                        <div className="p-4 rounded-lg border text-center mb-4" style={{ backgroundColor: "var(--muted)", borderColor: "var(--border)" }}>
+                          Loading datasets...
+                        </div>
+                      ) : datasetsData && datasetsData.length > 0 ? (
+                        <div className="mb-4">
+                          <Select
+                            label="Select Dataset"
+                            value={selectedDatasetId}
+                            onChange={setSelectedDatasetId}
+                            disabled={isSubmitting || uploadFileMutation.isPending}
+                            placeholder="Select a dataset to upload to"
+                            helperText="Choose which dataset to store your file in"
+                            options={datasetsData.map((dataset) => ({
+                              value: dataset.dataSetId.toString(),
+                              label: `Dataset #${dataset.dataSetId} ${dataset.cdn ? "⚡" : ""}`,
+                            }))}
+                          />
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-lg border text-center mb-4" style={{ backgroundColor: "var(--muted)", borderColor: "var(--border)" }}>
+                          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+                            No datasets found. Go to Storage page to create a dataset first.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* File Drop Zone */}
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                          isDragging
+                            ? "border-blue-500 bg-blue-500/10"
+                            : "border-gray-300 hover:border-gray-400"
+                        } ${
+                          isSubmitting || uploadFileMutation.isPending || !selectedDatasetId
+                            ? "cursor-not-allowed opacity-50"
+                            : "cursor-pointer"
+                        }`}
+                        onDragEnter={handleDragIn}
+                        onDragLeave={handleDragOut}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                        onClick={() => {
+                          if (isSubmitting || uploadFileMutation.isPending || !selectedDatasetId) return;
+                          document.getElementById("contributeFileInput")?.click();
+                        }}
+                      >
+                        <input
+                          id="contributeFileInput"
+                          type="file"
+                          onChange={(e) => {
+                            e.target.files && setFile(e.target.files[0]);
+                            e.target.value = "";
+                          }}
+                          className="hidden"
+                          disabled={isSubmitting || uploadFileMutation.isPending || !selectedDatasetId}
+                        />
+                        <div className="flex flex-col items-center gap-2">
+                          <svg
+                            className={`w-10 h-10 ${
+                              isDragging ? "text-blue-500" : "text-gray-400"
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
+                          </svg>
+                          <p className="text-lg font-medium">
+                            {file
+                              ? file.name
+                              : "Drop your file here, or click to select"}
+                          </p>
+                          {!file && (
+                            <p className="text-sm text-gray-500">
+                              Drag and drop your file, or click to browse
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Upload Status */}
+                      {uploadFileMutation.isPending && (
+                        <div className="mt-4">
+                          <p className="text-sm text-secondary mb-2">{status}</p>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                              className="bg-green-500 h-2.5 rounded-full transition-all duration-500"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
                 {/* Submit Button */}
                 <motion.button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || uploadFileMutation.isPending}
                   className="w-full btn-orange disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 py-3"
-                  whileHover={!isSubmitting ? { scale: 1.02 } : {}}
-                  whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+                  whileHover={!isSubmitting && !uploadFileMutation.isPending ? { scale: 1.02 } : {}}
+                  whileTap={!isSubmitting && !uploadFileMutation.isPending ? { scale: 0.98 } : {}}
                 >
                   {isSubmitting ? (
                     <>
