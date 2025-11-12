@@ -292,7 +292,7 @@ export default function ContributionsTablePage() {
                             className="text-sm font-medium"
                             style={{ color: "var(--foreground)" }}
                           >
-                            {`Stored Files: #${dataset.pieces.length}`}
+                            {`contributions: #${dataset.pieces.length}`}
                           </h6>
                         </div>
                         <div className="space-y-2">

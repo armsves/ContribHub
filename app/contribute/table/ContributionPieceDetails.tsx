@@ -56,7 +56,7 @@ export function ContributionPieceDetails({
           className="text-sm font-medium"
           style={{ color: "var(--foreground)" }}
         >
-          Piece #{piece.id}
+          Contribution #{piece.id}
         </p>
         <p
           className="text-xs truncate"

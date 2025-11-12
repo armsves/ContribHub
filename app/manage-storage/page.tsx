@@ -120,25 +120,23 @@ export default function ManageStoragePage() {
           <p className="text-base mb-6" style={{ color: "var(--secondary)" }}>
             Please switch to the Filecoin Calibration network to manage your storage.
           </p>
-          {switchChain && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSwitchChain}
-              className="px-6 py-3 rounded-lg font-medium text-white transition-all"
-              style={{
-                backgroundColor: "#FF6A00",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#FF7A10";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#FF6A00";
-              }}
-            >
-              Switch to Calibration
-            </motion.button>
-          )}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSwitchChain}
+            className="px-6 py-3 rounded-lg font-medium text-white transition-all"
+            style={{
+              backgroundColor: "#FF6A00",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#FF7A10";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#FF6A00";
+            }}
+          >
+            Switch to Calibration
+          </motion.button>
         </motion.div>
       </div>
     );
